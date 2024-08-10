@@ -1,6 +1,8 @@
+using ApplicationDB;
 using Blazored.LocalStorage;
 using DocManager.Client.Pages;
 using DocManager.Components;
+using Microsoft.EntityFrameworkCore;
 using DocManager.Services;
 using MudBlazor.Services;
 using Shared.Dto;
@@ -16,6 +18,9 @@ builder.Services.AddRazorComponents()
 builder.Services.AddHttpClient();
 builder.Services.AddSingleton<LoginService>();
 builder.Services.AddBlazoredLocalStorage();
+
+builder.Services.AddDbContext<AppContextDB>(options =>
+    options.UseNpgsql(builder.Configuration.GetConnectionString("Myconnection")));
 
 var app = builder.Build();
 

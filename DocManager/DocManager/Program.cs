@@ -1,5 +1,7 @@
+using ApplicationDB;
 using DocManager.Client.Pages;
 using DocManager.Components;
+using Microsoft.EntityFrameworkCore;
 using MudBlazor.Services;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -10,6 +12,9 @@ builder.Services.AddMudServices();
 // Add services to the container.
 builder.Services.AddRazorComponents()
     .AddInteractiveWebAssemblyComponents();
+
+builder.Services.AddDbContext<AppContextDB>(options =>
+    options.UseNpgsql(builder.Configuration.GetConnectionString("Myconnection")));
 
 var app = builder.Build();
 

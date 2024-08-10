@@ -1,0 +1,104 @@
+﻿@page "/Login"
+@inject HttpClient httpClient
+@inject Blazored.LocalStorage.ILocalStorageService localStorage
+@using System.Security.Cryptography;
+@using Microsoft.AspNetCore.Cryptography.KeyDerivation
+
+<MudGrid>
+    <MudItem xs="12" sm="7">
+        <MudPaper Class="pa-4">
+            <MudForm @ref="form" @bind-IsValid="@success" @bind-Errors="@errors">
+                <MudTextField T="string" @bind-Value="LoginData" Label="Логин" Required="true" RequiredError="Вы не указали логин" />
+                <MudTextField T="string" @bind-Value="Password" Label="Пароль" HelperText="Введите ваш пароль" @ref="pwField1"
+                              InputType="InputType.Password"
+                              Validation="@(new Func<string, IEnumerable<string>>(PasswordStrength))" Required="true"
+                              RequiredError="Вы не указали пароль" />
+            </MudForm>
+        </MudPaper>
+        <MudPaper Class="pa-4 mt-4">
+            <MudButton Variant="Variant.Filled" Color="Color.Primary" DropShadow="false" @onclick="Validate">Вход</MudButton>
+            <MudButton Variant="Variant.Filled" Color="Color.Secondary" DropShadow="false" OnClick="@(()=>form.ResetAsync())" Class="mx-2">Очистить поля</MudButton>
+        </MudPaper>
+    </MudItem>
+    <MudItem xs="12" sm="5">
+        <MudPaper Class="pa-4 mud-height-full">
+            <MudText Typo="Typo.subtitle2">@($"Ошибки: ({errors.Length})")</MudText>
+            @foreach (var error in errors)
+            {
+                <MudText Color="@Color.Error">@error</MudText>
+            }
+        </MudPaper>
+    </MudItem>
+</MudGrid>
+
+<MudText Class="mb-4">@result</MudText>
+<MudText Class="mb-4">@token</MudText>
+<MudText Class="mb-4">Токен в локалке: @token</MudText>
+
+@code {
+    // Поля для формы
+    bool success;
+    string[] errors = { };
+    MudTextField<string> pwField1;
+    MudForm form;
+    string result = "---";
+    string token = "---";
+    string retrievedToken;
+
+    // Поля для вода
+    string LoginData { get; set; }
+    string Password { get; set; }
+
+    private IEnumerable<string> PasswordStrength(string pw)
+    {
+        if (string.IsNullOrWhiteSpace(pw))
+        {
+            yield return "Поле 'пароль' пусто";
+            yield break;
+        }
+        if (pw.Length < 8)
+            yield return "Длина пароля должна быть больше 8ми символов";
+        if (!Regex.IsMatch(pw, @"[A-Z]"))
+            yield return "У пароля отсутствую буквы вверхнего регистра";
+        if (!Regex.IsMatch(pw, @"[a-z]"))
+            yield return "У пароля отсутствую буквы нижнего регистра";
+        if (!Regex.IsMatch(pw, @"[0-9]"))
+            yield return "В пароле не содержится ни одна цифра";
+    }
+
+
+    public async Task Validate()
+    {
+
+        UserLogin user = new UserLogin()
+            {
+                Login = "Not stated",
+                Password = "Not stated"
+            };
+        user.Login = LoginData;
+
+        byte[] salt = BitConverter.GetBytes(42);
+
+        string hashed = Convert.ToBase64String(KeyDerivation.Pbkdf2(
+        password: Password,
+        salt: salt,
+        prf: KeyDerivationPrf.HMACSHA256,
+        iterationCount: 24,
+        numBytesRequested: 256 / 8));
+
+        user.Password = hashed;
+
+        var response = await httpClient.PostAsJsonAsync("/LoginResult", user);
+        if (response.IsSuccessStatusCode)
+        {
+            result = "Успех!";
+            var val = await response.Content.ReadFromJsonAsync<TokenResponse>();
+            token = val.Token;
+            await localStorage.SetItemAsync("userJWT", token);
+        } else
+        {
+            result = "Ошибка";
+        }
+    }
+
+}

@@ -8,8 +8,8 @@ namespace Data.Models
         public int Id { get; set; }
         public string Name { get; set; }
         public string? Desc { get; set; }
-        public DateOnly Created { get; set; }
-        public DateOnly ExpireDate { get; set; }
+        public DateTime Created { get; set; }
+        public DateTime ExpireDate { get; set; }
         public User User { get; set; }
     }
 }

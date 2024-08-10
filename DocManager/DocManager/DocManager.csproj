@@ -6,6 +6,17 @@
     <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
 
+  <ItemGroup>
+    <Compile Remove="Controllers\**" />
+    <Compile Remove="Handlers\**" />
+    <Content Remove="Controllers\**" />
+    <Content Remove="Handlers\**" />
+    <EmbeddedResource Remove="Controllers\**" />
+    <EmbeddedResource Remove="Handlers\**" />
+    <None Remove="Controllers\**" />
+    <None Remove="Handlers\**" />
+  </ItemGroup>
+
 
   <ItemGroup>
     <ProjectReference Include="..\..\Shared\Shared.csproj" />
@@ -22,8 +33,6 @@
 
 
   <ItemGroup>
-    <Folder Include="Controllers\" />
-    <Folder Include="Handlers\" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="8.0.7">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>

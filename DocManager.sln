@@ -7,10 +7,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DocManager", "DocManager\Do
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DocManager.Client", "DocManager\DocManager.Client\DocManager.Client.csproj", "{3C8E1CC4-2A4F-4334-BA4D-18981642F8F4}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Data", "Data\Data.csproj", "{E52735DD-9F66-49C4-A6FA-DB2E6FDAC603}"
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DocManager.Client", "DocManager\DocManager.Client\DocManager.Client.csproj", "{3C8E1CC4-2A4F-4334-BA4D-18981642F8F4}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Data", "Data\Data.csproj", "{E52735DD-9F66-49C4-A6FA-DB2E6FDAC603}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Shared", "Shared\Shared.csproj", "{EB24E426-18B4-4167-83F1-53F651848C7C}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Shared", "Shared\Shared.csproj", "{EB24E426-18B4-4167-83F1-53F651848C7C}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

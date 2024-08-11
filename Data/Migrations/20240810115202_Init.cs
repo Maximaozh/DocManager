@@ -50,8 +50,8 @@ namespace Data.Migrations
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     Name = table.Column<string>(type: "text", nullable: false),
                     Desc = table.Column<string>(type: "text", nullable: true),
-                    Created = table.Column<DateOnly>(type: "date", nullable: false),
-                    ExpireDate = table.Column<DateOnly>(type: "date", nullable: false),
+                    Created = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    ExpireDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     UserId = table.Column<int>(type: "integer", nullable: false)
                 },
                 constraints: table =>
@@ -66,28 +66,51 @@ namespace Data.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "UserGroups",
+                name: "GroupUser",
                 columns: table => new
                 {
-                    User_ID = table.Column<int>(type: "integer", nullable: false),
-                    Group_ID = table.Column<int>(type: "integer", nullable: false),
-                    Usergroup_ID = table.Column<int>(type: "integer", nullable: false)
+                    GroupsId = table.Column<int>(type: "integer", nullable: false),
+                    UsersId = table.Column<int>(type: "integer", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_UserGroups", x => new { x.Group_ID, x.User_ID });
+                    table.PrimaryKey("PK_GroupUser", x => new { x.GroupsId, x.UsersId });
                     table.ForeignKey(
-                        name: "FK_UserGroups_Groups_Group_ID",
-                        column: x => x.Group_ID,
+                        name: "FK_GroupUser_Groups_GroupsId",
+                        column: x => x.GroupsId,
                         principalTable: "Groups",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_UserGroups_Users_User_ID",
-                        column: x => x.User_ID,
+                        name: "FK_GroupUser_Users_UsersId",
+                        column: x => x.UsersId,
                         principalTable: "Users",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "UserGroups",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    UserId = table.Column<int>(type: "integer", nullable: true),
+                    GroupId = table.Column<int>(type: "integer", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_UserGroups", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_UserGroups_Groups_GroupId",
+                        column: x => x.GroupId,
+                        principalTable: "Groups",
+                        principalColumn: "Id");
+                    table.ForeignKey(
+                        name: "FK_UserGroups_Users_UserId",
+                        column: x => x.UserId,
+                        principalTable: "Users",
+                        principalColumn: "Id");
                 });
 
             migrationBuilder.CreateTable(
@@ -143,9 +166,19 @@ namespace Data.Migrations
                 column: "UserId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_UserGroups_User_ID",
+                name: "IX_GroupUser_UsersId",
+                table: "GroupUser",
+                column: "UsersId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_UserGroups_GroupId",
                 table: "UserGroups",
-                column: "User_ID");
+                column: "GroupId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_UserGroups_UserId",
+                table: "UserGroups",
+                column: "UserId");
         }
 
         /// <inheritdoc />
@@ -153,6 +186,9 @@ namespace Data.Migrations
         {
             migrationBuilder.DropTable(
                 name: "DocumentAccesses");
+
+            migrationBuilder.DropTable(
+                name: "GroupUser");
 
             migrationBuilder.DropTable(
                 name: "UserGroups");

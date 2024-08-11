@@ -27,12 +27,12 @@ namespace ApplicationDB
                 j => j
                     .HasOne(ug => ug.Group)
                     .WithMany(p => p.UserGroups)
-                    .HasForeignKey(ug => ug.Group_ID),
-                j =>
-                {
-                    j.HasKey(t => new { t.Group_ID, t.User_ID });
-                    j.ToTable("UserGroups");
-                });
+                    .HasForeignKey(ug => ug.Group_ID));
+                //j =>
+                //{
+                //    j.HasKey(t => new { t.Group_ID, t.User_ID });
+                //    j.ToTable("UserGroups");
+                //});
         }
     }
 }

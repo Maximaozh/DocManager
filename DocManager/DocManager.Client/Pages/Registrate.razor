@@ -1,21 +1,27 @@
-﻿@page "/Login"
+﻿@page "/Registrate"
 @inject HttpClient httpClient
-@inject Shared.IPasswordHasher passwordHasher
 @inject Blazored.LocalStorage.ILocalStorageService localStorage
+@inject Shared.IPasswordHasher passwordHasher
 
 <MudGrid>
     <MudItem xs="12" sm="7">
         <MudPaper Class="pa-4">
             <MudForm @ref="form" @bind-IsValid="@success" @bind-Errors="@errors">
-                <MudTextField T="string" @bind-Value="LoginData" Label="Логин" Required="true" RequiredError="Вы не указали логин" />
-                <MudTextField T="string" @bind-Value="Password" Label="Пароль" HelperText="Введите ваш пароль" @ref="pwField1"
+                <MudTextField T="string" @bind-Value="LoginReg" Label="Логин" Required="true" RequiredError="Вы не указали логин" />
+                <MudTextField T="string" @bind-Value="PasswordReg" Label="Пароль" @ref="pwField1"
                               InputType="InputType.Password"
                               Validation="@(new Func<string, IEnumerable<string>>(PasswordStrength))" Required="true"
                               RequiredError="Вы не указали пароль" />
+                <MudSelect T="string" Label="Роль" @bind-Value="RoleReg" AnchorOrigin="Origin.BottomCenter" Required="true" RequiredError="Укажите роль пользователя">
+                    <MudSelectItem Value="@("Пользователь")" />
+                    <MudSelectItem Value="@("Администратор")" />
+                </MudSelect>
+                <MudTextField T="string" @bind-Value="NameReg"      Label="Имя" />
+                <MudTextField T="string" @bind-Value="SurnameReg"   Label="Фамилия" />
             </MudForm>
         </MudPaper>
         <MudPaper Class="pa-4 mt-4">
-            <MudButton Variant="Variant.Filled" Color="Color.Primary" DropShadow="false" @onclick="Validate">Вход</MudButton>
+            <MudButton Variant="Variant.Filled" Color="Color.Primary" DropShadow="false" @onclick="Validate">Регистрация</MudButton>
             <MudButton Variant="Variant.Filled" Color="Color.Secondary" DropShadow="false" OnClick="@(()=>form.ResetAsync())" Class="mx-2">Очистить поля</MudButton>
         </MudPaper>
     </MudItem>
@@ -31,22 +37,21 @@
 </MudGrid>
 
 <MudText Class="mb-4">@result</MudText>
-<MudText Class="mb-4">@token</MudText>
-<MudText Class="mb-4">Токен в локалке: @token</MudText>
 
 @code {
-
     // Поля для формы
     bool success;
     string[] errors = { };
-    MudTextField<string>? pwField1;
-    MudForm? form;
+    MudTextField<string> pwField1;
+    MudForm form;
     string result = "---";
-    string token = "---";
 
-    string? LoginData;
-    string? Password;
-
+    // Поля для вода
+    string? LoginReg        { get; set; }
+    string? PasswordReg     { get; set; }
+    string? RoleReg { get; set; } = "Пользователь";
+    string? NameReg         { get; set; }
+    string? SurnameReg      { get; set; }
 
     private IEnumerable<string> PasswordStrength(string pw)
     {
@@ -68,27 +73,24 @@
 
     public async Task Validate()
     {
-        string hashed = passwordHasher.GenerateHashPbkdf2(Password);
 
-        UserLogin user = new UserLogin()
-        {
-            Login = "Not stated",
-            Password = "Not stated"
-        };
 
-        user.Login = LoginData;
-        user.Password = hashed;
+        UserRegistrate user = new UserRegistrate()
+            {
+                Login = LoginReg,
+                Password = passwordHasher.GenerateHashPbkdf2(PasswordReg),
+                Role = RoleReg,
+                Name = NameReg,
+                Surname = SurnameReg,
+            };
 
-        var response = await httpClient.PostAsJsonAsync("/LoginServer", user);
+        var response = await httpClient.PostAsJsonAsync("/RegisterServer", user);
         if (response.IsSuccessStatusCode)
         {
-            result = "Успех!";
-            var val = await response.Content.ReadFromJsonAsync<TokenResponse>();
-            token = val.Token;
-            await localStorage.SetItemAsync("userJWT", token);
+            result = $"Пользователь {user.Login} зарегистрирован!";
         } else
         {
-            result = "Ошибка";
+            result = "Ошибка. Пользователь не был добавлен в систему. Возможно данный логин уже занят?" ;
         }
     }
 

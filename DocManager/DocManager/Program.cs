@@ -6,6 +6,9 @@ using Microsoft.EntityFrameworkCore;
 using DocManager.Services;
 using MudBlazor.Services;
 using Shared.Dto;
+using DocManager.Endpoints;
+using Shared;
+using Data.Repositories;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -16,11 +19,14 @@ builder.Services.AddMudServices();
 builder.Services.AddRazorComponents()
     .AddInteractiveWebAssemblyComponents();
 builder.Services.AddHttpClient();
-builder.Services.AddSingleton<LoginService>();
 builder.Services.AddBlazoredLocalStorage();
 
 builder.Services.AddDbContext<AppContextDB>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("Myconnection")));
+
+builder.Services.AddScoped<IUserRepositoriy, UserRepositoriy>();
+builder.Services.AddScoped<IPasswordHasher, PasswordHasher>();
+builder.Services.AddScoped<UserService>();
 
 var app = builder.Build();
 
@@ -34,20 +40,9 @@ else
     app.UseExceptionHandler("/Error", createScopeForErrors: true);
 }
 
+app.MapUserEndpoints();
 app.UseStaticFiles();
 app.UseAntiforgery();
-
-
-
-app.MapPost("/LoginResult", (UserLogin user) =>
-{
-    var loginService = app.Services.GetService<LoginService>();
-    var result = loginService.AuthenticateUser(user);
-
-    if (result is not null)
-        return Results.Json(result);
-    else return Results.BadRequest(new { details = "Ошибка при проверке данных. Возможно вы ввели неправильный логин или пароль" });
-});
 
 app.MapRazorComponents<App>()
     .AddInteractiveWebAssemblyRenderMode()

@@ -12,7 +12,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Data.Migrations
 {
     [DbContext(typeof(AppContextDB))]
-    [Migration("20240810015033_Init")]
+    [Migration("20240810115202_Init")]
     partial class Init
     {
         /// <inheritdoc />
@@ -33,14 +33,14 @@ namespace Data.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
-                    b.Property<DateOnly>("Created")
-                        .HasColumnType("date");
+                    b.Property<DateTime>("Created")
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("Desc")
                         .HasColumnType("text");
 
-                    b.Property<DateOnly>("ExpireDate")
-                        .HasColumnType("date");
+                    b.Property<DateTime>("ExpireDate")
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("Name")
                         .IsRequired()
@@ -137,20 +137,40 @@ namespace Data.Migrations
 
             modelBuilder.Entity("Data.Models.UserGroup", b =>
                 {
-                    b.Property<int>("Group_ID")
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("integer");
 
-                    b.Property<int>("User_ID")
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<int?>("GroupId")
                         .HasColumnType("integer");
 
-                    b.Property<int>("Usergroup_ID")
+                    b.Property<int?>("UserId")
                         .HasColumnType("integer");
 
-                    b.HasKey("Group_ID", "User_ID");
+                    b.HasKey("Id");
 
-                    b.HasIndex("User_ID");
+                    b.HasIndex("GroupId");
 
-                    b.ToTable("UserGroups", (string)null);
+                    b.HasIndex("UserId");
+
+                    b.ToTable("UserGroups");
+                });
+
+            modelBuilder.Entity("GroupUser", b =>
+                {
+                    b.Property<int>("GroupsId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("UsersId")
+                        .HasColumnType("integer");
+
+                    b.HasKey("GroupsId", "UsersId");
+
+                    b.HasIndex("UsersId");
+
+                    b.ToTable("GroupUser");
                 });
 
             modelBuilder.Entity("Data.Models.Document", b =>
@@ -191,19 +211,30 @@ namespace Data.Migrations
                 {
                     b.HasOne("Data.Models.Group", "Group")
                         .WithMany("UserGroups")
-                        .HasForeignKey("Group_ID")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("GroupId");
 
                     b.HasOne("Data.Models.User", "User")
                         .WithMany("UserGroups")
-                        .HasForeignKey("User_ID")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("UserId");
 
                     b.Navigation("Group");
 
                     b.Navigation("User");
+                });
+
+            modelBuilder.Entity("GroupUser", b =>
+                {
+                    b.HasOne("Data.Models.Group", null)
+                        .WithMany()
+                        .HasForeignKey("GroupsId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Data.Models.User", null)
+                        .WithMany()
+                        .HasForeignKey("UsersId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("Data.Models.Group", b =>

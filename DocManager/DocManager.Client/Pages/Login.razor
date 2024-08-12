@@ -1,7 +1,6 @@
 ﻿@page "/Login"
 @inject HttpClient httpClient
 @inject Shared.IPasswordHasher passwordHasher
-@inject Blazored.LocalStorage.ILocalStorageService localStorage
 
 <MudGrid>
     <MudItem xs="12" sm="7">
@@ -79,13 +78,10 @@
         user.Login = LoginData;
         user.Password = hashed;
 
-        var response = await httpClient.PostAsJsonAsync("/LoginServer", user);
+        var response = await httpClient.PostAsJsonAsync("/Login", user);
         if (response.IsSuccessStatusCode)
         {
             result = "Успех!";
-            var val = await response.Content.ReadFromJsonAsync<TokenResponse>();
-            token = val.Token;
-            await localStorage.SetItemAsync("userJWT", token);
         } else
         {
             result = "Ошибка";

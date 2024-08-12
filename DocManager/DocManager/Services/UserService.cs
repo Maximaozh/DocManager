@@ -13,37 +13,45 @@ namespace DocManager.Services
 {
     public interface IUserService
     {
-        public Task<TokenResponse> AuthenticateUser(UserLogin user);
+        public Task<IResult> AuthenticateUser(UserLogin user, HttpContext httpContext);
+        public Task<IResult> Registrate(UserRegistrate user, HttpContext httpContext);
     }
     public class UserService : IUserService
     {
         private readonly IConfiguration _configuration;
         private readonly IPasswordHasher _passwordHasher;
         private readonly IUserRepositoriy _userRepository;
-        public UserService(IConfiguration configuration, IPasswordHasher passwordHasher, IUserRepositoriy userRepositoriy)
+        private readonly IJwtProvider _jwtProvider;
+        public UserService(IConfiguration configuration,
+            IPasswordHasher passwordHasher, 
+            IUserRepositoriy userRepositoriy,
+            IJwtProvider jwtProvider
+            )
         {
             _configuration = configuration;
             _passwordHasher = passwordHasher;
             _userRepository = userRepositoriy;
+            _jwtProvider = jwtProvider;
         }
 
-        public async Task<TokenResponse> AuthenticateUser(UserLogin userLogin)
+        public async Task<IResult> AuthenticateUser(UserLogin userLogin, HttpContext httpContext)
         {
             var user = await _userRepository.GetByLogin(userLogin.Login);
 
             if (user == null)
-                return null;
+                return Results.BadRequest(new { details = "Не удалось получить пользователя" });
 
             if (userLogin.Login != user.Login)
-                return null;
+                return Results.BadRequest(new { details = "Не удалось найти пользователя с таким логином" });
 
             if (!_passwordHasher.Verify(userLogin.Password, user.Password))
-                return null;
+                return Results.BadRequest(new { details = "Неподходящий пароль" });
 
             TokenData data = new TokenData() { Login = user.Login, Password = user.Password, Role = user.Role };
-            return new TokenResponse() { Token = GenerateJWT(data) };
+            httpContext.Response.Cookies.Append("1251",_jwtProvider.GenerateJWT(data));
+            return Results.Ok();
         }
-        public async Task<IResult> Registrate(UserRegistrate user)
+        public async Task<IResult> Registrate(UserRegistrate user, HttpContext httpContext)
         {
             if(user is null)
                 return Results.BadRequest(new { details = "Ошибка, пользователь не был получен" });
@@ -57,30 +65,6 @@ namespace DocManager.Services
 
             await _userRepository.Add(user);
             return Results.Ok();
-        }
-
-        private string GenerateJWT(TokenData data)
-        {
-            var claims = new List<Claim>()
-            {
-                new Claim(ClaimTypes.Name, data.Login),
-                new Claim (ClaimTypes.SerialNumber, data.Password),
-                new Claim (ClaimTypes.Role, data.Role)
-            };
-
-            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(
-                _configuration.GetSection("AppSettings:Token").Value!));
-
-            var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha512Signature);
-
-            var token = new JwtSecurityToken(
-                claims: claims,
-                expires: DateTime.Now.AddHours(1),
-                signingCredentials: creds
-                );
-
-            var jwt = new JwtSecurityTokenHandler().WriteToken(token);
-            return jwt;
         }
     }
 }

@@ -8,24 +8,22 @@ namespace DocManager.Endpoints
     {
         public static IEndpointRouteBuilder MapUserEndpoints(this IEndpointRouteBuilder app)
         {
-            app.MapPost("/LoginServer", Login);
-            app.MapPost("/RegisterServer", Register);
+            app.MapPost("/Login", Login);
+
+            app.MapPost("/Registrate", Register).RequireAuthorization(policy => policy.RequireRole("Администратор"));
 
             return app;
         }
 
-        private static async Task<IResult> Login(UserService userService, UserLogin user)
+        private static async Task<IResult> Login(UserService userService, UserLogin user, HttpContext httpContext)
         {
-            var result = await userService.AuthenticateUser(user);
-
-            if (result is not null)
-                return Results.Json(result);
-            else return Results.BadRequest(new { details = "Ошибка при проверке данных. Возможно вы ввели неправильный логин или пароль" });
+            var response = await userService.AuthenticateUser(user, httpContext);
+            return response;
         }
 
-        private static async Task<IResult> Register(UserService userService, UserRegistrate user)
+        private static async Task<IResult> Register(UserService userService, UserRegistrate user, HttpContext httpContext)
         {
-            var response = await userService.Registrate(user);
+            var response = await userService.Registrate(user, httpContext);
             return response;
         }
     }

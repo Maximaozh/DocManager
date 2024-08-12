@@ -84,7 +84,7 @@
                 Surname = SurnameReg,
             };
 
-        var response = await httpClient.PostAsJsonAsync("/RegisterServer", user);
+        var response = await httpClient.PostAsJsonAsync("/Registrate", user);
         if (response.IsSuccessStatusCode)
         {
             result = $"Пользователь {user.Login} зарегистрирован!";

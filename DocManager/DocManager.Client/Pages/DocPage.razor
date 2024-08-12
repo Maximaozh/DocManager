@@ -1,0 +1,59 @@
+﻿@page "/Document"
+
+<h3 style="margin-bottom: 8px;">Создание документа</h3>
+
+<MudButton StartIcon="@Icons.Material.Filled.Info" Color="Color.Inherit" OnClick="@((e) => DrawerToggle())">Информация</MudButton>
+<MudPaper Style="overflow:hidden; position:relative;">
+     <MudDrawerContainer>
+        <MudDrawer @bind-Open="_open" Elevation="2" Variant="@DrawerVariant.Persistent" Class="pa-2">
+            <MudCard Class="mud-height-full">
+                <MudCardContent>
+                    <MudForm ReadOnly="ReadOnly">
+                        <MudTextField @bind-Value="@docInfo.Name" T="string" Label="Заголовок" />
+                        <MudTextField @bind-Value="@AuthorDoc" T="string" Label="Автор" />
+                        <MudDatePicker @bind-Date="date" ReadOnly="false" Label="Дата создания" />
+                        <MudDatePicker @bind-Date="@ExpireDateDoc" IsDateDisabledFunc="@((DateTime dt)=>(dt < dateMinExpire))" Label="Действителен до" />
+                        <MudTextField @bind-Value="@DescriptionDoc" T="string" Label="Описание" Variant="Variant.Outlined" Lines="6" />
+                    </MudForm>
+                </MudCardContent>
+                <MudCardActions>
+                    <MudCheckBox @bind-Value="ReadOnly">ReadOnly</MudCheckBox>
+                </MudCardActions>
+            </MudCard>
+        </MudDrawer>
+        <div class="d-flex justify-center align-center">
+            <MudTextField @ref="multilineReference" T="string" Label="Содержание документа" Lines="25"
+                            Variant="Variant.Outlined" Text="@sampleText" Adornment="Adornment.End" AdornmentIcon="@Icons.Material.Filled.Api"
+                            OnAdornmentClick="@(() => multilineReference.SelectAsync())" />
+        </div>
+    </MudDrawerContainer>
+</MudPaper>
+
+@code {
+    private bool _open = true;
+    bool ReadOnly = true;
+    bool Disabled = true;
+    private DateTime? date = DateTime.Today;
+    private DateTime dateMinExpire = DateTime.Today.AddDays(1);
+
+    private MudTextField<string> multilineReference;
+
+    string? NameDoc { get; set; }
+    string? AuthorDoc { get; set; }
+    string? DescriptionDoc { get; set; }
+    public DateTime CreatedDateDoc { get; set; }
+    public DateTime? ExpireDateDoc { get; set; }
+
+    DocInfo docInfo = new DocInfo();
+
+
+    private void DrawerToggle()
+    {
+        _open = !_open;
+    }
+
+    string sampleText = "Hello World!";
+
+    
+   
+}

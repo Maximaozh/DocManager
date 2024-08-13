@@ -8,22 +8,22 @@
         <MudDrawer @bind-Open="_open" Elevation="2" Variant="@DrawerVariant.Persistent" Class="pa-2">
             <MudCard Class="mud-height-full">
                 <MudCardContent>
-                    <MudForm ReadOnly="ReadOnly">
-                        <MudTextField @bind-Value="@docInfo.Name" T="string" Label="Заголовок" />
-                        <MudTextField @bind-Value="@AuthorDoc" T="string" Label="Автор" />
-                        <MudDatePicker @bind-Date="date" ReadOnly="false" Label="Дата создания" />
+                    <MudForm ReadOnly="!ReadOnly">
+                        <MudTextField @bind-Value="@NameDoc" T="string" Label="Заголовок" />
+                        <MudTextField @bind-Value="@AuthorDoc" ReadOnly="true" T="string" Label="Автор" />
+                        <MudDatePicker @bind-Date="@CreatedDateDoc" ReadOnly="true" Label="Дата создания" />
                         <MudDatePicker @bind-Date="@ExpireDateDoc" IsDateDisabledFunc="@((DateTime dt)=>(dt < dateMinExpire))" Label="Действителен до" />
-                        <MudTextField @bind-Value="@DescriptionDoc" T="string" Label="Описание" Variant="Variant.Outlined" Lines="6" />
+                        <MudTextField @bind-Value="@PathDoc" T="string" Label="Путь" />
                     </MudForm>
                 </MudCardContent>
                 <MudCardActions>
-                    <MudCheckBox @bind-Value="ReadOnly">ReadOnly</MudCheckBox>
+                    <MudSwitch @bind-Value="ReadOnly" Label="Режим изменения" Color="Color.Info" />
                 </MudCardActions>
             </MudCard>
         </MudDrawer>
         <div class="d-flex justify-center align-center">
-            <MudTextField @ref="multilineReference" T="string" Label="Содержание документа" Lines="25"
-                            Variant="Variant.Outlined" Text="@sampleText" Adornment="Adornment.End" AdornmentIcon="@Icons.Material.Filled.Api"
+            <MudTextField ReadOnly="!ReadOnly" @ref="multilineReference" T="string" Label="Содержание документа" Lines="25"
+                            Variant="Variant.Outlined" Text="@DescriptionDoc" Adornment="Adornment.End" AdornmentIcon="@Icons.Material.Filled.Api"
                             OnAdornmentClick="@(() => multilineReference.SelectAsync())" />
         </div>
     </MudDrawerContainer>
@@ -31,29 +31,36 @@
 
 @code {
     private bool _open = true;
-    bool ReadOnly = true;
-    bool Disabled = true;
-    private DateTime? date = DateTime.Today;
-    private DateTime dateMinExpire = DateTime.Today.AddDays(1);
+    bool ReadOnly = false;
 
     private MudTextField<string> multilineReference;
 
     string? NameDoc { get; set; }
     string? AuthorDoc { get; set; }
     string? DescriptionDoc { get; set; }
-    public DateTime CreatedDateDoc { get; set; }
-    public DateTime? ExpireDateDoc { get; set; }
+    DateTime? CreatedDateDoc { get; set; } = DateTime.Today;
+    DateTime? ExpireDateDoc { get; set; }
+    string? PathDoc { get; set; } = "\\";
 
-    DocInfo docInfo = new DocInfo();
+    private DateTime dateMinExpire = DateTime.Today.AddDays(1);
 
-
+    public async Task Validate()
+    {
+        DocInfo docInfo = new DocInfo()
+            {
+                UserId = 7,
+                Name = NameDoc,
+                Author = AuthorDoc,
+                Path = PathDoc,
+                Description = DescriptionDoc,
+                CreatedDate = DateTime.Today,
+                ExpireDate = (DateTime)ExpireDateDoc,
+            };
+    }
     private void DrawerToggle()
     {
         _open = !_open;
     }
 
-    string sampleText = "Hello World!";
-
-    
-   
+    string sampleText = "Hello World!";   
 }

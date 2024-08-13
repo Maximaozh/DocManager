@@ -32,6 +32,8 @@ builder.Services.AddDbContext<AppContextDB>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("Myconnection")));
 
 builder.Services.AddScoped<IUserRepositoriy, UserRepositoriy>();
+builder.Services.AddScoped<IDocumentRepositoriy, DocumentRepositoriy>();
+
 builder.Services.AddScoped<IPasswordHasher, PasswordHasher>();
 builder.Services.AddScoped<UserService>();
 builder.Services.AddScoped<IJwtProvider, JwtProvider>();

@@ -12,8 +12,10 @@ namespace Data.Models
         public string Role { get; set; }
         public string? Name { get; set; }
         public string? Surname { get; set; }
+        public DateTime Registered { get; set; }
         public List<Group> Groups { get; set; } = [];
         public List<UserGroup> UserGroups { get; set; } = [];
+        public List<Document> Documents { get; set; } = [];
     }
 }
 

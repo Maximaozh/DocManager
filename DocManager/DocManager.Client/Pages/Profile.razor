@@ -14,6 +14,7 @@
     <MudPaper Class="pa-3">
         <MudPaper Width="300px">
             <MudList T="string">
+                <MudListItem @bind-Text="userInfo.Id" Icon="@Icons.Material.Filled.Inbox" />
                 <MudListItem @bind-Text="userInfo.Role" Icon="@Icons.Material.Filled.Inbox" />
                 <MudListItem @bind-Text="userInfo.Name" Icon="@Icons.Material.Filled.Inbox" />
                 <MudListItem @bind-Text="userInfo.Surname" Icon="@Icons.Material.Filled.Inbox" />
@@ -26,7 +27,7 @@
 </MudStack>
 
 @code {
-    UserInfo userInfo = new UserInfo() { Login = "---", Role = "---" };
+    UserInfo userInfo = new UserInfo() { Id = "---", Login = "---", Role = "---" };
 
     protected override async void OnInitialized()
     {
@@ -36,6 +37,7 @@
         if(user is not null && user.Identity.IsAuthenticated)
         {
             var claims = user.Claims;
+            userInfo.Id = claims.FirstOrDefault(c => c.Type == "UserId")?.Value ?? "---";
             userInfo.Login = claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value ?? "---";
             userInfo.Role = claims.FirstOrDefault(c => c.Type == ClaimTypes.Role)?.Value ?? "---";
             userInfo.Name = claims.FirstOrDefault(c => c.Type == "Name")?.Value ?? "---";

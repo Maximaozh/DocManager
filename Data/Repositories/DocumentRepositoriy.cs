@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Shared.Dto;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.Metrics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -32,17 +33,40 @@ namespace Data.Repositories
             };
 
             user.Documents.Add(document);
-            
+
+            DocumentAccess access = new DocumentAccess()
+            {
+                Access_level = 0,
+                Document = document,
+                User = user,
+            };
+
+            await _Context.AddAsync(access);
+
             await _Context.AddAsync(document);
             await _Context.SaveChangesAsync();
         }
 
-        public async Task<List<Document>> Get()
+        public async Task<List<DocInfoGet>> Get()
         {
-            return await _Context.Documents
-                .AsNoTracking()
-                .OrderBy(x => x.Id)
-                .ToListAsync();
+            //return await _Context.Documents
+            //    .AsNoTracking()
+            //    .OrderBy(x => x.Id)
+            //    .ToListAsync();
+
+            var docs = from d in _Context.Documents
+                       select new DocInfoGet()
+                       {
+                           Id = d.Id,
+                           Name = d.Name,
+                           Description = d.Desc,
+                           CreatedDate = d.Created,
+                           ExpireDate = d.ExpireDate,
+                           Path = d.Path,
+                           UserId = d.User.Id,
+                       };
+            var doc_list = docs.ToList();
+            return doc_list;
         }
 
         public Task<Document?> GetByID(int id)

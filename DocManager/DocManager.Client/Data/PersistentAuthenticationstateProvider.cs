@@ -20,6 +20,7 @@ namespace DocManager.Client.Data
             }
             List<Claim> claims =
             [
+                new Claim("UserId", userInfo.Id),
                 new Claim(ClaimTypes.NameIdentifier, userInfo.Login),
                 new Claim(ClaimTypes.Role, userInfo.Role),
                 new Claim("Name", userInfo.Name),

@@ -40,15 +40,17 @@ namespace DocManager.Data
 
             if (principal.Identity?.IsAuthenticated == true)
             {
+                string? id = principal.FindFirst("UserId")?.Value;
                 string? login = principal.FindFirst(_options.ClaimsIdentity.UserIdClaimType)?.Value;
                 string? role = principal.FindFirst(_options.ClaimsIdentity.RoleClaimType)?.Value;
                 string? name = principal.FindFirst("Name")?.Value;
                 string? surname = principal.FindFirst("Surname")?.Value;
 
-                if (login != null && role != null)
+                if (id != null && login != null && role != null)
                 {
                     _state.PersistAsJson(nameof(UserInfo), new UserInfo
                     {
+                        Id = id,
                         Login = login,
                         Role = role,
                         Name = name,

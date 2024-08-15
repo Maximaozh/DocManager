@@ -17,4 +17,14 @@ namespace Shared.Dto
         public DateTime CreatedDate { get; set; }
         public DateTime ExpireDate { get; set; }
     }
+    public class DocInfoGet
+    {
+        public int Id { get; set; }
+        public required string Name { get; set; }
+        public string? Description { get; set; }
+        public DateTime CreatedDate { get; set; }
+        public DateTime ExpireDate { get; set; }
+        public int UserId { get; set; }
+        public required string Path { get; set; }
+    }
 }

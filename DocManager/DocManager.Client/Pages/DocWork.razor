@@ -1,0 +1,67 @@
+﻿@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Components.Authorization
+
+@page "/DocWork"
+@inject HttpClient httpClient
+
+<PageTitle>Главная страница</PageTitle>
+
+@attribute [Authorize(Roles = "Администратор")]
+<MudText Typo="Typo.h3" GutterBottom="true">Управление документами</MudText>
+
+<MudPaper>
+    <MudStack Row>
+        <MudText Class="pa-2">Сортировка</MudText>
+        <MudButtonGroup Color="Color.Primary" Size="Size.Medium" Variant="Variant.Outlined">
+            <MudButton>Название</MudButton>
+            <MudButton>Дата создания</MudButton>
+            <MudButton>Дата окончания</MudButton>
+        </MudButtonGroup>
+        <MudText Class="pa-2">@($"Active Index: {activeIndex}")</MudText>
+    </MudStack>
+
+    <MudTextField @bind-Value="_immediateText"
+                  HelperText="@_immediateText" Label="Поиск" Variant="Variant.Outlined"
+                  Adornment="Adornment.End" AdornmentIcon="@Icons.Material.Filled.Search" />
+
+    <MudStack Row Style="flex-wrap:wrap">
+         @if (documents != null)
+        {
+            @foreach (var item in documents)
+            {
+                <MudBreakpointProvider>
+                    <MudHidden Breakpoint="Breakpoint.MdAndUp" Invert="true">
+                        <MudCard Class="pa-5">
+                            <MudCardContent>
+                                <MudText>@item.Name</MudText>
+                                    <MudText Typo="Typo.body2">@item.CreatedDate</MudText>
+                                </MudCardContent>
+                                <MudCardActions>
+                                    <MudButton Variant="Variant.Text" Color="Color.Primary">Learn More</MudButton>
+                                </MudCardActions>
+                            </MudCard>
+                        </MudHidden>
+                    </MudBreakpointProvider>
+            }
+        }
+        else
+        {
+            <p>Loading...</p>
+        }
+
+    </MudStack>
+</MudPaper>
+
+@code
+{
+    int activeIndex = 2;
+    string _immediateText = "";
+
+    private List<DocInfoGet>? documents = new List<DocInfoGet>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        documents = await httpClient.GetFromJsonAsync<List<DocInfoGet>>("http://localhost:5197/api/DocWork");
+        // Console.WriteLine("Hello World!");
+    }
+}

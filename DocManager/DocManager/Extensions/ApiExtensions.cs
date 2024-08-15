@@ -20,6 +20,7 @@ public static class ApiExtensions
     public static void AddMappedEndpoitns(IEndpointRouteBuilder app)
     {
         app.MapUserEndpoints();
+        app.MapDocEndpoints();
     }
 
     // Добавляет функционал аутентификации и авторизации
@@ -77,6 +78,7 @@ public static class ApiExtensions
     public static void AddData(WebApplicationBuilder builder)
     {
         builder.Services.AddScoped<UserService>();
+        builder.Services.AddScoped<DocumentService>();
         builder.Services.AddScoped<IPasswordHasher, PasswordHasher>();
         builder.Services.AddScoped<IJwtProvider, JwtProvider>();
     }

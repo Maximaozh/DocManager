@@ -54,6 +54,7 @@ namespace DocManager.Services
 
             UserInfo data = new UserInfo()
             {
+                Id = user.Id.ToString(),
                 Login = user.Login,
                 Role = user.Role,
                 Surname = user.Surname,

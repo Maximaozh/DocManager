@@ -12,6 +12,7 @@ public class JwtProvider : IJwtProvider
     {
         List<Claim> claims =
         [
+            new Claim("UserId", data.Id),
             new Claim(ClaimTypes.NameIdentifier, data.Login),
             new Claim(ClaimTypes.Role, data.Role),
             new Claim("Name", data.Name),

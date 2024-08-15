@@ -11,7 +11,7 @@ namespace Data.Repositories
     public interface IDocumentRepositoriy
     {
         Task Add(DocInfo documentInfo);
-        Task<List<Document>> Get();
+        Task<List<DocInfoGet>> Get();
         Task<Document?> GetByID(int id);
     }
 }

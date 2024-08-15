@@ -2,13 +2,15 @@
 @using Microsoft.AspNetCore.Authorization
 @using Microsoft.AspNetCore.Components.Authorization
 
+@inject HttpClient httpClient
+
 <h3 style="margin-bottom: 8px;">Создание документа</h3>
 
 @attribute [Authorize(Roles ="Администратор")]
 
 <MudButton StartIcon="@Icons.Material.Filled.Info" Color="Color.Inherit" OnClick="@((e) => DrawerToggle())">Информация</MudButton>
 <MudPaper Style="overflow:hidden; position:relative;">
-     <MudDrawerContainer>
+    <MudDrawerContainer>
         <MudDrawer @bind-Open="_open" Elevation="2" Variant="@DrawerVariant.Persistent" Class="pa-2">
             <MudCard Class="mud-height-full">
                 <MudCardContent>
@@ -18,6 +20,7 @@
                         <MudDatePicker @bind-Date="@CreatedDateDoc" ReadOnly="true" Label="Дата создания" />
                         <MudDatePicker @bind-Date="@ExpireDateDoc" IsDateDisabledFunc="@((DateTime dt)=>(dt < dateMinExpire))" Label="Действителен до" />
                         <MudTextField @bind-Value="@PathDoc" T="string" Label="Путь" />
+                        <MudButton Variant="Variant.Filled" Color="Color.Primary" DropShadow="false" @onclick="Validate">Сохранить</MudButton>
                     </MudForm>
                 </MudCardContent>
                 <MudCardActions>
@@ -26,16 +29,19 @@
             </MudCard>
         </MudDrawer>
         <div class="d-flex justify-center align-center">
-            <MudTextField ReadOnly="!ReadOnly" @ref="multilineReference" T="string" Label="Содержание документа" Lines="25"
-                            Variant="Variant.Outlined" Text="@DescriptionDoc" Adornment="Adornment.End" AdornmentIcon="@Icons.Material.Filled.Api"
-                            OnAdornmentClick="@(() => multilineReference.SelectAsync())" />
+            <MudTextField @bind-Value="@DescriptionDoc" ReadOnly="!ReadOnly" @ref="multilineReference" T="string" Label="Содержание документа" Lines="25"
+                          Variant="Variant.Outlined" Text="@DescriptionDoc" Adornment="Adornment.End" AdornmentIcon="@Icons.Material.Filled.Api"
+                          OnAdornmentClick="@(() => multilineReference.SelectAsync())" />
         </div>
     </MudDrawerContainer>
-</MudPaper>
 
-@code {
+</MudPaper>
+<MudText Class="mb-4">@result</MudText>
+
+    @code {
     private bool _open = true;
     bool ReadOnly = false;
+    string result = "---";
 
     private MudTextField<string> multilineReference;
 
@@ -45,11 +51,15 @@
     DateTime? CreatedDateDoc { get; set; } = DateTime.Today;
     DateTime? ExpireDateDoc { get; set; }
     string? PathDoc { get; set; } = "\\";
+    DateTime ExpireDateDocUtc = DateTime.Now;
 
-    private DateTime dateMinExpire = DateTime.Today.AddDays(1);
+
+    private DateTime dateMinExpire;
 
     public async Task Validate()
     {
+        ExpireDateDocUtc = DateTime.SpecifyKind((DateTime)ExpireDateDoc, DateTimeKind.Utc);
+
         DocInfo docInfo = new DocInfo()
             {
                 UserId = 7,
@@ -57,14 +67,24 @@
                 Author = AuthorDoc,
                 Path = PathDoc,
                 Description = DescriptionDoc,
-                CreatedDate = DateTime.Today,
-                ExpireDate = (DateTime)ExpireDateDoc,
+                CreatedDate = DateTime.UtcNow,
+                ExpireDate = ExpireDateDocUtc,
             };
+        var response = await httpClient.PostAsJsonAsync("api/Document", docInfo);
+        if (response.IsSuccessStatusCode)
+        {
+            result = $"Документ {docInfo.Name} успешно создан!";
+        }
+        else
+        {
+            result = "Ошибка. Документ не был добавлен в систему.";
+        }
     }
     private void DrawerToggle()
     {
         _open = !_open;
     }
 
-    string sampleText = "Hello World!";   
+
 }
+

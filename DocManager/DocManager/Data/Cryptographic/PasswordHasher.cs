@@ -1,16 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Security.Cryptography;
-using System.Text;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Cryptography.KeyDerivation;
+﻿using Microsoft.AspNetCore.Cryptography.KeyDerivation;
 
-namespace Shared
+namespace DocManager.Data.Cryptographic
 {
     public class PasswordHasher : IPasswordHasher
     {
-        public string GenerateHashBCrypt(string password) => 
+        public string GenerateHashBCrypt(string password) =>
             BCrypt.Net.BCrypt.HashPassword(password);
 
         public string GenerateHashPbkdf2(string password)
@@ -30,4 +24,3 @@ namespace Shared
             BCrypt.Net.BCrypt.Verify(password, passwordHash);
     }
 }
-    

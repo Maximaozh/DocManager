@@ -1,6 +1,10 @@
 ﻿@page "/Login"
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Components.Authorization
 @inject HttpClient httpClient
-@inject Shared.IPasswordHasher passwordHasher
+@inject NavigationManager navManager
+@inject AuthenticationStateProvider StateProvider
+
 
 <MudGrid>
     <MudItem xs="12" sm="7">
@@ -34,7 +38,11 @@
 <MudText Class="mb-4">Токен в локалке: @token</MudText>
 
 @code {
-
+        protected override async Task OnInitializedAsync()
+        {
+            var authState = await
+                    StateProvider.GetAuthenticationStateAsync();
+        }
     // Поля для формы
     bool success;
     string[] errors = { };
@@ -67,8 +75,6 @@
 
     public async Task Validate()
     {
-        string hashed = passwordHasher.GenerateHashPbkdf2(Password);
-
         UserLogin user = new UserLogin()
         {
             Login = "Not stated",
@@ -76,12 +82,13 @@
         };
 
         user.Login = LoginData;
-        user.Password = hashed;
+        user.Password = Password;
 
-        var response = await httpClient.PostAsJsonAsync("/Login", user);
+        var response = await httpClient.PostAsJsonAsync("api/login", user);
         if (response.IsSuccessStatusCode)
         {
             result = "Успех!";
+            navManager.NavigateTo("/", true);
         } else
         {
             result = "Ошибка";

@@ -1,46 +1,15 @@
-using ApplicationDB;
-using Blazored.LocalStorage;
-using DocManager.Client.Pages;
 using DocManager.Components;
-using Microsoft.EntityFrameworkCore;
-using DocManager.Services;
-using MudBlazor.Services;
-using Shared.Dto;
-using DocManager.Endpoints;
-using Shared;
-using Data.Repositories;
 using DocManager.Extensions;
 
-var builder = WebApplication.CreateBuilder(args);
+WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
-// Add MudBlazor services
-builder.Services.AddMudServices();
+ApiExtensions.AddAuth(builder);
+ApiExtensions.AddDB(builder);
+ApiExtensions.AddData(builder);
+ApiExtensions.AddUnspecified(builder);
 
-// Add services to the container.
-builder.Services.AddRazorComponents()
-    .AddInteractiveWebAssemblyComponents();
-builder.Services.AddHttpClient();
-builder.Services.AddBlazoredLocalStorage();
+WebApplication app = builder.Build();
 
-builder.Services.Configure<JwtOptions>(builder.Configuration.GetSection(nameof(JwtOptions)));
-builder.Services.AddAuthentication();
-builder.Services.AddAuthorization();
-builder.Services.AddEndpointsApiExplorer();
-ApiExtensions.AddApiAuthentication(builder.Services, builder.Configuration);
-
-builder.Services.AddDbContext<AppContextDB>(options =>
-    options.UseNpgsql(builder.Configuration.GetConnectionString("Myconnection")));
-
-builder.Services.AddScoped<IUserRepositoriy, UserRepositoriy>();
-builder.Services.AddScoped<IDocumentRepositoriy, DocumentRepositoriy>();
-
-builder.Services.AddScoped<IPasswordHasher, PasswordHasher>();
-builder.Services.AddScoped<UserService>();
-builder.Services.AddScoped<IJwtProvider, JwtProvider>();
-
-var app = builder.Build();
-
-// Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
     app.UseWebAssemblyDebugging();
@@ -50,17 +19,17 @@ else
     app.UseExceptionHandler("/Error", createScopeForErrors: true);
 }
 
+// Не думаю что стоит выделять доп методы ещё и для app
+// В теории нам должно хватить лишь endpoints
+ApiExtensions.AddMappedEndpoitns(app);
+
 app.UseStaticFiles();
 app.UseAntiforgery();
 
 app.UseAuthentication();
 app.UseAuthorization();
-
 app.MapRazorComponents<App>()
     .AddInteractiveWebAssemblyRenderMode()
     .AddAdditionalAssemblies(typeof(DocManager.Client._Imports).Assembly);
-
-app.AddMappedEndpoitns();
-
 
 app.Run();

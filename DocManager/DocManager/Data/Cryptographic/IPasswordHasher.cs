@@ -1,4 +1,4 @@
-﻿namespace Shared
+﻿namespace DocManager.Data.Cryptographic
 {
     public interface IPasswordHasher
     {

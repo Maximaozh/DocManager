@@ -1,10 +1,60 @@
-﻿@page "/profile"
-<AuthorizeView>
-<h3>Profile</h3>
+﻿@page "/Profile"
+@using Microsoft.AspNetCore.Components.Authorization
+@using System.Security.Claims
 
-</AuthorizeView>
+@inject HttpClient HttpClient
+@inject NavigationManager NavManager
+@inject AuthenticationStateProvider StateProvider
 
+
+<MudStack>
+    <MudPaper Class="pa-3">
+        <MudText Typo="Typo.h5">Добро пожаловать, @userInfo.Login </MudText>
+    </MudPaper>
+    <MudPaper Class="pa-3">
+        <MudPaper Width="300px">
+            <MudList T="string">
+                <MudListItem @bind-Text="userInfo.Role" Icon="@Icons.Material.Filled.Inbox" />
+                <MudListItem @bind-Text="userInfo.Name" Icon="@Icons.Material.Filled.Inbox" />
+                <MudListItem @bind-Text="userInfo.Surname" Icon="@Icons.Material.Filled.Inbox" />
+            </MudList>
+        </MudPaper>
+    </MudPaper>
+    <MudPaper Class="pa-3">
+        <MudButton Variant="Variant.Filled" Color="Color.Secondary" @onclick="Logout">Выйти из аккаунта</MudButton>
+    </MudPaper>
+</MudStack>
 
 @code {
+    UserInfo userInfo = new UserInfo() { Login = "---", Role = "---" };
+
+    protected override async void OnInitialized()
+    {
+        var state = await StateProvider.GetAuthenticationStateAsync();
+        var user = state.User;
+
+        if(user is not null && user.Identity.IsAuthenticated)
+        {
+            var claims = user.Claims;
+            userInfo.Login = claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value ?? "---";
+            userInfo.Role = claims.FirstOrDefault(c => c.Type == ClaimTypes.Role)?.Value ?? "---";
+            userInfo.Name = claims.FirstOrDefault(c => c.Type == "Name")?.Value ?? "---";
+            userInfo.Surname = claims.FirstOrDefault(c => c.Type == "Surname")?.Value ?? "---";
+        }
+    }
+
+    public async Task Logout()
+    {
+        var authState = StateProvider.GetAuthenticationStateAsync();
+
+
+        var user = authState.Result.User;
+
+        if (user.Identity is not null && user.Identity.IsAuthenticated)
+        {
+            var response = await HttpClient.GetAsync("api/logout");
+            NavManager.NavigateTo("/", true);
+        }
+    }
 
 }

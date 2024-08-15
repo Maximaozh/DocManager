@@ -1,7 +1,11 @@
 ﻿@page "/Registrate"
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Components.Authorization
+
 @inject HttpClient httpClient
-@inject Blazored.LocalStorage.ILocalStorageService localStorage
-@inject Shared.IPasswordHasher passwordHasher
+@inject AuthenticationStateProvider StateProvider
+
+@attribute [Authorize(Roles = "Администратор")]
 
 <MudGrid>
     <MudItem xs="12" sm="7">
@@ -36,9 +40,13 @@
     </MudItem>
 </MudGrid>
 
-<MudText Class="mb-4">@result</MudText>
-
 @code {
+    protected override async Task OnInitializedAsync()
+        {
+            var authState = await
+                    StateProvider.GetAuthenticationStateAsync();
+        }
+
     // Поля для формы
     bool success;
     string[] errors = { };
@@ -78,13 +86,13 @@
         UserRegistrate user = new UserRegistrate()
             {
                 Login = LoginReg,
-                Password = passwordHasher.GenerateHashPbkdf2(PasswordReg),
+                Password = PasswordReg,
                 Role = RoleReg,
                 Name = NameReg,
                 Surname = SurnameReg,
             };
 
-        var response = await httpClient.PostAsJsonAsync("/Registrate", user);
+        var response = await httpClient.PostAsJsonAsync("api/registrate", user);
         if (response.IsSuccessStatusCode)
         {
             result = $"Пользователь {user.Login} зарегистрирован!";

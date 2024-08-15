@@ -1,6 +1,10 @@
 ﻿@page "/Document"
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Components.Authorization
 
 <h3 style="margin-bottom: 8px;">Создание документа</h3>
+
+@attribute [Authorize(Roles ="Администратор")]
 
 <MudButton StartIcon="@Icons.Material.Filled.Info" Color="Color.Inherit" OnClick="@((e) => DrawerToggle())">Информация</MudButton>
 <MudPaper Style="overflow:hidden; position:relative;">

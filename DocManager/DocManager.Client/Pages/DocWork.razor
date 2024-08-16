@@ -3,65 +3,72 @@
 
 @page "/DocWork"
 @inject HttpClient httpClient
+@inject NavigationManager NavManager
 
 <PageTitle>Главная страница</PageTitle>
 
 @attribute [Authorize(Roles = "Администратор")]
 <MudText Typo="Typo.h3" GutterBottom="true">Управление документами</MudText>
 
-<MudPaper>
-    <MudStack Row>
-        <MudText Class="pa-2">Сортировка</MudText>
-        <MudButtonGroup Color="Color.Primary" Size="Size.Medium" Variant="Variant.Outlined">
-            <MudButton>Название</MudButton>
-            <MudButton>Дата создания</MudButton>
-            <MudButton>Дата окончания</MudButton>
-        </MudButtonGroup>
-        <MudText Class="pa-2">@($"Active Index: {activeIndex}")</MudText>
-    </MudStack>
+<MudStack Row>
+    <MudText Class="pa-2">Сортировка</MudText>
+    <MudButtonGroup Color="Color.Primary" Size="Size.Medium" Variant="Variant.Outlined" Class="pa-2">
+        <MudButton>Название</MudButton>
+        <MudButton>Дата создания</MudButton>
+        <MudButton>Дата окончания</MudButton>
+    </MudButtonGroup>
+    <MudButton @onclick="RedirectToAddDoc" Variant="Variant.Outlined" StartIcon="@Icons.Material.Filled.NoteAdd" Size="Size.Small" Color="Color.Primary">Создать документ</MudButton>
+</MudStack>
 
-    <MudTextField @bind-Value="_immediateText"
-                  HelperText="@_immediateText" Label="Поиск" Variant="Variant.Outlined"
-                  Adornment="Adornment.End" AdornmentIcon="@Icons.Material.Filled.Search" />
+<MudTextField @bind-Value="_immediateText"
+                HelperText="@_immediateText" Label="Поиск" Variant="Variant.Outlined"
+                Adornment="Adornment.End" AdornmentIcon="@Icons.Material.Filled.Search" Class="mb-8"/>
 
-    <MudStack Row Style="flex-wrap:wrap">
-         @if (documents != null)
+<MudStack Row Style="flex-wrap:wrap">
+    @if (documents != null)
+    {
+        @foreach (var item in documents)
         {
-            @foreach (var item in documents)
-            {
-                <MudBreakpointProvider>
-                    <MudHidden Breakpoint="Breakpoint.MdAndUp" Invert="true">
-                        <MudCard Class="pa-5">
-                            <MudCardContent>
-                                <MudText>@item.Name</MudText>
-                                    <MudText Typo="Typo.body2">@item.CreatedDate</MudText>
-                                </MudCardContent>
-                                <MudCardActions>
-                                    <MudButton Variant="Variant.Text" Color="Color.Primary">Learn More</MudButton>
-                                </MudCardActions>
-                            </MudCard>
-                        </MudHidden>
-                    </MudBreakpointProvider>
-            }
+            <MudBreakpointProvider>
+                <MudHidden Breakpoint="Breakpoint.SmAndUp" Invert="true">
+                    <MudCard Class="pa-5">
+                        <MudCardContent>
+                            <MudText>@item.Name</MudText>
+                                <MudText Typo="Typo.body2">Срок действия: @item.ExpireDate.Subtract(DateTime.UtcNow).Days дней</MudText>
+                            </MudCardContent>
+                            <MudCardActions>
+                            <MudButton Variant="Variant.Text" Color="Color.Primary" @onclick="() => RedirectToWatchDoc(item.Id)">Подробнее</MudButton>
+                                <MudButton Variant="Variant.Text" StartIcon="@Icons.Material.Filled.Delete" Color="Color.Error">Удалить</MudButton>
+                            </MudCardActions>
+                        </MudCard>
+                    </MudHidden>
+                </MudBreakpointProvider>
         }
-        else
-        {
-            <p>Loading...</p>
-        }
+    }
+    else
+    {
+        <p>Loading...</p>
+    }
+</MudStack>
 
-    </MudStack>
-</MudPaper>
 
 @code
 {
-    int activeIndex = 2;
     string _immediateText = "";
 
     private List<DocInfoGet>? documents = new List<DocInfoGet>();
 
     protected override async Task OnInitializedAsync()
     {
-        documents = await httpClient.GetFromJsonAsync<List<DocInfoGet>>("http://localhost:5197/api/DocWork");
+        documents = await httpClient.GetFromJsonAsync<List<DocInfoGet>>("api/DocWork");
         // Console.WriteLine("Hello World!");
+    }
+    public void RedirectToAddDoc()
+    {
+        NavManager.NavigateTo("Document");
+    }
+    public void RedirectToWatchDoc(int id)
+    {
+        NavManager.NavigateTo($"Document/{id}");
     }
 }

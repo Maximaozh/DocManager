@@ -1,8 +1,11 @@
-﻿@page "/Document"
+﻿@page "/Document/{DocId}"
 @using Microsoft.AspNetCore.Authorization
 @using Microsoft.AspNetCore.Components.Authorization
+@using System.Security.Claims
 
 @inject HttpClient httpClient
+@inject NavigationManager NavManager
+@inject AuthenticationStateProvider StateProvider
 
 <h3 style="margin-bottom: 8px;">Создание документа</h3>
 
@@ -12,9 +15,31 @@
 <MudPaper Style="overflow:hidden; position:relative;">
     <MudDrawerContainer>
         <MudDrawer @bind-Open="_open" Elevation="2" Variant="@DrawerVariant.Persistent" Class="pa-2">
+           
+        @if (DocId > 0)
+        {
             <MudCard Class="mud-height-full">
                 <MudCardContent>
-                    <MudForm ReadOnly="!ReadOnly">
+                         <MudForm ReadOnly="!ReadOnly">
+                            <MudTextField @bind-Value="@DocId" T="int" Label="Id" />
+                            <MudTextField @bind-Value="@NameDoc" T="string" Label="Заголовок" />
+                            <MudTextField @bind-Value="@AuthorDoc" ReadOnly="true" T="string" Label="Автор" />
+                            <MudDatePicker @bind-Date="@CreatedDateDoc" ReadOnly="true" Label="Дата создания" />
+                            <MudDatePicker @bind-Date="@ExpireDateDoc" IsDateDisabledFunc="@((DateTime dt)=>(dt < dateMinExpire))" Label="Действителен до" />
+                            <MudTextField @bind-Value="@PathDoc" T="string" Label="Путь" />
+                            <MudButton Variant="Variant.Filled" Color="Color.Primary" DropShadow="false" @onclick="Validate">Сохранить</MudButton>
+                        </MudForm>
+                </MudCardContent>
+                <MudCardActions>
+                    <MudSwitch @bind-Value="ReadOnly" Label="Режим изменения" Color="Color.Info" />
+                </MudCardActions>
+            </MudCard>
+        }
+        else
+        {
+            <MudCard Class="mud-height-full">
+                <MudCardContent>
+                    <MudForm ReadOnly="ReadOnly">
                         <MudTextField @bind-Value="@NameDoc" T="string" Label="Заголовок" />
                         <MudTextField @bind-Value="@AuthorDoc" ReadOnly="true" T="string" Label="Автор" />
                         <MudDatePicker @bind-Date="@CreatedDateDoc" ReadOnly="true" Label="Дата создания" />
@@ -23,10 +48,9 @@
                         <MudButton Variant="Variant.Filled" Color="Color.Primary" DropShadow="false" @onclick="Validate">Сохранить</MudButton>
                     </MudForm>
                 </MudCardContent>
-                <MudCardActions>
-                    <MudSwitch @bind-Value="ReadOnly" Label="Режим изменения" Color="Color.Info" />
-                </MudCardActions>
             </MudCard>
+        }
+               
         </MudDrawer>
         <div class="d-flex justify-center align-center">
             <MudTextField @bind-Value="@DescriptionDoc" ReadOnly="!ReadOnly" @ref="multilineReference" T="string" Label="Содержание документа" Lines="25"
@@ -43,28 +67,50 @@
     bool ReadOnly = false;
     string result = "---";
 
-    private MudTextField<string> multilineReference;
+    [Parameter]
+    public int DocId { get; set; } = 0;
 
+    [Required]
     string? NameDoc { get; set; }
     string? AuthorDoc { get; set; }
     string? DescriptionDoc { get; set; }
     DateTime? CreatedDateDoc { get; set; } = DateTime.Today;
+    [Required]
     DateTime? ExpireDateDoc { get; set; }
+    [Required]
     string? PathDoc { get; set; } = "\\";
-    DateTime ExpireDateDocUtc = DateTime.Now;
-
 
     private DateTime dateMinExpire;
+    private MudTextField<string> multilineReference;
+
+    UserInfo userInfo = new UserInfo() { Id = "---", Login = "---", Role = "---" };
+
+    protected override async void OnInitialized()
+    {
+        var state = await StateProvider.GetAuthenticationStateAsync();
+        var user = state.User;
+
+        //Поменять на получение с локалстораж
+        if (user is not null && user.Identity.IsAuthenticated)
+        {
+            var claims = user.Claims;
+            userInfo.Id = claims.FirstOrDefault(c => c.Type == "UserId")?.Value ?? "---";
+            userInfo.Login = claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value ?? "---";
+            userInfo.Role = claims.FirstOrDefault(c => c.Type == ClaimTypes.Role)?.Value ?? "---";
+            userInfo.Name = claims.FirstOrDefault(c => c.Type == "Name")?.Value ?? "---";
+            userInfo.Surname = claims.FirstOrDefault(c => c.Type == "Surname")?.Value ?? "---";
+        }
+        AuthorDoc = userInfo.Name + " " + userInfo.Surname;
+    }
 
     public async Task Validate()
     {
-        ExpireDateDocUtc = DateTime.SpecifyKind((DateTime)ExpireDateDoc, DateTimeKind.Utc);
+        var ExpireDateDocUtc = DateTime.SpecifyKind((DateTime)ExpireDateDoc, DateTimeKind.Utc);
 
         DocInfo docInfo = new DocInfo()
             {
-                UserId = 7,
+                UserId = Convert.ToInt32(userInfo.Id),
                 Name = NameDoc,
-                Author = AuthorDoc,
                 Path = PathDoc,
                 Description = DescriptionDoc,
                 CreatedDate = DateTime.UtcNow,
@@ -74,6 +120,7 @@
         if (response.IsSuccessStatusCode)
         {
             result = $"Документ {docInfo.Name} успешно создан!";
+            NavManager.NavigateTo("DocWork", true);
         }
         else
         {
@@ -84,7 +131,5 @@
     {
         _open = !_open;
     }
-
-
 }
 

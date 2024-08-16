@@ -12,6 +12,6 @@ namespace Data.Repositories
     {
         Task Add(DocInfo documentInfo);
         Task<List<DocInfoGet>> Get();
-        Task<Document?> GetByID(int id);
+        Task<DocInfoGet?> GetByID(int id);
     }
 }

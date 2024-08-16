@@ -65,13 +65,24 @@ namespace Data.Repositories
                            Path = d.Path,
                            UserId = d.User.Id,
                        };
-            var doc_list = docs.ToList();
-            return doc_list;
+
+            return await docs.ToListAsync();
         }
 
-        public Task<Document?> GetByID(int id)
+        public async Task<DocInfoGet?> GetByID(int id)
         {
-            throw new NotImplementedException();
+            return await _Context.Documents.Include(d => d.User.Id).Select(d =>
+                new DocInfoGet()
+                {
+                    Id = d.Id,
+                    Name = d.Name,
+                    Description = d.Desc,
+                    CreatedDate = d.Created,
+                    ExpireDate = d.ExpireDate,
+                    Path = d.Path,
+                    UserId = d.User.Id,
+                }).SingleOrDefaultAsync(d => d.Id == id);
+            
         }
     }
 }

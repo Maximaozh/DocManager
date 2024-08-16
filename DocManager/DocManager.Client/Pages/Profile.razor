@@ -34,7 +34,7 @@
         var state = await StateProvider.GetAuthenticationStateAsync();
         var user = state.User;
 
-        if(user is not null && user.Identity.IsAuthenticated)
+        if (user is not null && user.Identity.IsAuthenticated)
         {
             var claims = user.Claims;
             userInfo.Id = claims.FirstOrDefault(c => c.Type == "UserId")?.Value ?? "---";

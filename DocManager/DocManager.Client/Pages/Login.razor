@@ -1,9 +1,12 @@
 ﻿@page "/Login"
 @using Microsoft.AspNetCore.Authorization
 @using Microsoft.AspNetCore.Components.Authorization
+@using System.Net.Http.Headers
+@using Shared.Dto.User
 @inject HttpClient httpClient
 @inject NavigationManager navManager
 @inject AuthenticationStateProvider StateProvider
+@inject LocalStorage storage
 
 
 <MudGrid>
@@ -38,11 +41,11 @@
 <MudText Class="mb-4">Токен в локалке: @token</MudText>
 
 @code {
-        protected override async Task OnInitializedAsync()
-        {
-            var authState = await
-                    StateProvider.GetAuthenticationStateAsync();
-        }
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await
+                StateProvider.GetAuthenticationStateAsync();
+    }
     // Поля для формы
     bool success;
     string[] errors = { };
@@ -84,10 +87,14 @@
         user.Login = LoginData;
         user.Password = Password;
 
-        var response = await httpClient.PostAsJsonAsync("api/login", user);
+        var response = await httpClient.PostAsJsonAsync("api/user/login", user);
+        var userInfo = response.Content.ReadFromJsonAsync<LoginResponse>().Result;
         if (response.IsSuccessStatusCode)
         {
             result = "Успех!";
+            storage.setData(userInfo);
+            //httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", userInfo.Token);
+            
             navManager.NavigateTo("/", true);
         } else
         {

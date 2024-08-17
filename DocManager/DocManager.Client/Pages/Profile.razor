@@ -27,7 +27,7 @@
 </MudStack>
 
 @code {
-    UserInfo userInfo = new UserInfo() { Id = "---", Login = "---", Role = "---" };
+    UserInfo userInfo = new UserInfo() { Id = "---",Login = "---", Password="---",Role = "---" };
 
     protected override async void OnInitialized()
     {
@@ -54,7 +54,7 @@
 
         if (user.Identity is not null && user.Identity.IsAuthenticated)
         {
-            var response = await HttpClient.GetAsync("api/logout");
+            var response = await HttpClient.GetAsync("api/user/logout");
             NavManager.NavigateTo("/", true);
         }
     }

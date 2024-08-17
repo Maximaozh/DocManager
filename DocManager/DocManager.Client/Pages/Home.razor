@@ -1,6 +1,8 @@
 ﻿@page "/"
 @using Microsoft.AspNetCore.Components.Authorization
 @using System.Security.Claims
+@inject LocalStorage storage
+@inject HttpClient httpClient
 <PageTitle>Home</PageTitle>
 
 <MudText Typo="Typo.h3" GutterBottom="true">Hello, world!</MudText>
@@ -57,3 +59,15 @@
         More details
     </MudLink>
 </MudText>
+
+@code
+{
+    protected override async void OnAfterRender(bool firstTime)
+    {
+        if (!String.IsNullOrEmpty(await storage.Token()) && firstTime)
+        {
+            var response = await httpClient.PostAsJsonAsync("api/user/loginStartup", new BasicWrapper<string>() { Value = await storage.Token() });
+        }
+    }
+
+}

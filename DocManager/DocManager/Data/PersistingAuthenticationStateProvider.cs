@@ -43,6 +43,7 @@ namespace DocManager.Data
                 string? id = principal.FindFirst("UserId")?.Value;
                 string? login = principal.FindFirst(_options.ClaimsIdentity.UserIdClaimType)?.Value;
                 string? role = principal.FindFirst(_options.ClaimsIdentity.RoleClaimType)?.Value;
+                string? password = principal.FindFirst("Password")?.Value;
                 string? name = principal.FindFirst("Name")?.Value;
                 string? surname = principal.FindFirst("Surname")?.Value;
 
@@ -52,6 +53,7 @@ namespace DocManager.Data
                     {
                         Id = id,
                         Login = login,
+                        Password = password,
                         Role = role,
                         Name = name,
                         Surname = surname

@@ -1,5 +1,4 @@
 ﻿using ApplicationDB;
-using Data.Repositories;
 using DocManager.Data;
 using DocManager.Data.Cryptographic;
 using DocManager.Data.Jwt;
@@ -67,10 +66,8 @@ public static class ApiExtensions
     public static void AddDB(WebApplicationBuilder builder)
     {
         builder.Services.AddDbContext<AppContextDB>(options =>
-    options.UseNpgsql(builder.Configuration.GetConnectionString("Myconnection")));
+        options.UseNpgsql(builder.Configuration.GetConnectionString("Myconnection")));
 
-        builder.Services.AddScoped<IUserRepositoriy, UserRepositoriy>();
-        builder.Services.AddScoped<IDocumentRepositoriy, DocumentRepositoriy>();
     }
 
 
@@ -79,8 +76,8 @@ public static class ApiExtensions
     {
         builder.Services.AddScoped<UserService>();
         builder.Services.AddScoped<DocumentService>();
-        builder.Services.AddScoped<IPasswordHasher, PasswordHasher>();
-        builder.Services.AddScoped<IJwtProvider, JwtProvider>();
+        builder.Services.AddScoped<PasswordHasher>();
+        builder.Services.AddScoped<JwtProvider>();
     }
 
     // Добавляет неспециализированный функционал, использовать только если не удаётся сгруппировать сервисы в больший метод

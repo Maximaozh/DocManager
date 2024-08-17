@@ -1,10 +1,11 @@
 ﻿@using Microsoft.AspNetCore.Components.Authorization
 
 <MudNavMenu>
-   
+    <MudNavLink Href="" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Home">Главная</MudNavLink>
     <AuthorizeView Roles="Администратор">
         <Authorized>
             <MudNavLink Href="Registrate" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.AppRegistration">Регистрация</MudNavLink>
+            <MudNavLink Href="UserControl" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.SupervisedUserCircle">Управление пользователями</MudNavLink>
         </Authorized>
     </AuthorizeView>
     <AuthorizeView>
@@ -12,11 +13,12 @@
                 <MudNavLink Href="Login" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.Login">Вход</MudNavLink>
         </NotAuthorized>
         <Authorized>
-            <MudNavLink Href="" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Home">Главная</MudNavLink>
             <MudNavLink Href="Document" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.DataObject">Создание документа</MudNavLink>
-            <MudNavLink Href="DocWork" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.DataObject">Управление документами</MudNavLink>
+            <MudNavLink Href="DocWork" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.DatasetLinked">Управление документами</MudNavLink>
         </Authorized>
     </AuthorizeView>
+
+
 </MudNavMenu>
 
 

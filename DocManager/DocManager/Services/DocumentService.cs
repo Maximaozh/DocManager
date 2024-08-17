@@ -1,42 +1,68 @@
-﻿using Data.Repositories;
-using Shared.Dto;
-using Shared;
+﻿using ApplicationDB;
+using Data.Models;
+using Microsoft.EntityFrameworkCore;
+using Shared.Dto.Document;
 
-namespace DocManager.Services
+namespace DocManager.Services;
+
+
+public class DocumentService(AppContextDB dbContext)
 {
-    public interface IDocumentService
+
+
+    public async Task<int> Create(DocInfo documentInfo)
     {
-        public Task<IResult> Create(DocInfo doc, HttpContext httpContext);
-        public Task<IResult> GetByUser(HttpContext httpContext);
+        if (documentInfo is null)
+        {
+            return -1;
+        }
+
+        User user = await dbContext.Users.FirstOrDefaultAsync(u => u.Id == documentInfo.Id)
+            ?? throw new Exception();
+        Document document = new Document()
+        {
+            Name = documentInfo.Name,
+            Path = documentInfo.Path,
+            Created = documentInfo.CreatedDate,
+            ExpireDate = documentInfo.ExpireDate,
+            Desc = documentInfo.Description,
+        };
+
+        user.Documents.Add(document);
+
+        DocumentAccess access = new DocumentAccess()
+        {
+            Access_level = 0,
+            Document = document,
+            User = user,
+        };
+
+        await dbContext.AddAsync(access);
+
+        await dbContext.AddAsync(document);
+        await dbContext.SaveChangesAsync();
+        return 0;
     }
 
-    public class DocumentService : IDocumentService
+
+    // Данил, тут пока возвращаются все доки, доделай чтобы было по ID
+    public async Task<List<DocInfoGet>> GetByUser()
     {
-        private readonly IConfiguration _configuration;
-        private readonly IDocumentRepositoriy _documentRepositoriy;
-
-        public DocumentService(IConfiguration configuration, IDocumentRepositoriy documentRepositoriy)
+        List<DocInfoGet> docs = await dbContext
+        .Documents
+        .AsNoTracking()
+        .Select(d => new DocInfoGet()
         {
-            _configuration = configuration;
-            _documentRepositoriy = documentRepositoriy;
-        }
+            Id = d.Id,
+            Name = d.Name,
+            Description = d.Desc,
+            CreatedDate = d.Created,
+            ExpireDate = d.ExpireDate,
+            Path = d.Path,
+            UserId = d.User.Id
+        })
+        .ToListAsync();
 
-        public async Task<IResult> Create(DocInfo doc, HttpContext httpContext)
-        {
-            if (doc is null)
-                return Results.BadRequest(new { details = "Ошибка, документ не был получен" });
-
-            await _documentRepositoriy.Add(doc);
-            return Results.Ok();
-        }
-
-        public async Task<IResult> GetByUser(HttpContext httpContext)
-        {
-            var documents = await _documentRepositoriy.Get();
-            if (documents is null)
-                return Results.BadRequest(new { details = "Ошибка, документы не были получены" });
-            return Results.Json(documents);
-        }
+        return docs;
     }
 }
-

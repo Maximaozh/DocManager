@@ -6,15 +6,16 @@ using System.Text;
 
 namespace DocManager.Data.Jwt;
 
-public class JwtProvider : IJwtProvider
+public class JwtProvider(IConfiguration configuration)
 {
-    public string GenerateJWT(UserInfo data, IConfiguration configuration)
+    public string GenerateJWT(UserInfo data)
     {
         List<Claim> claims =
         [
             new Claim("UserId", data.Id),
             new Claim(ClaimTypes.NameIdentifier, data.Login),
             new Claim(ClaimTypes.Role, data.Role),
+            new Claim("Password", data.Password),
             new Claim("Name", data.Name),
             new Claim("Surname", data.Surname),
 

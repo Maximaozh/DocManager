@@ -1,6 +1,7 @@
 ﻿@page "/Document"
 @using Microsoft.AspNetCore.Authorization
 @using Microsoft.AspNetCore.Components.Authorization
+@using Shared.Dto.Document
 
 @inject HttpClient httpClient
 
@@ -62,7 +63,7 @@
 
         DocInfo docInfo = new DocInfo()
             {
-                UserId = 7,
+                Id = 7,
                 Name = NameDoc,
                 Author = AuthorDoc,
                 Path = PathDoc,

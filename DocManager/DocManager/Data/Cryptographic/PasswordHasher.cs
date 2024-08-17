@@ -2,7 +2,7 @@
 
 namespace DocManager.Data.Cryptographic
 {
-    public class PasswordHasher : IPasswordHasher
+    public class PasswordHasher
     {
         public string GenerateHashBCrypt(string password) =>
             BCrypt.Net.BCrypt.HashPassword(password);

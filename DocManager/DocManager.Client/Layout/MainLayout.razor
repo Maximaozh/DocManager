@@ -2,6 +2,9 @@
 @using MudBlazor;
 @inherits LayoutComponentBase
 @inject NavigationManager NavigationManager
+@inject LocalStorage storage
+@inject HttpClient httpClient
+@inject AuthenticationStateProvider staw
 
 <MudThemeProvider Theme="@_theme" IsDarkMode="_isDarkMode" />
 <MudPopoverProvider />
@@ -12,8 +15,6 @@
         <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start" OnClick="@((e) => DrawerToggle())" />
         <MudText Typo="Typo.h5" Class="ml-3">ДокументПлюс</MudText>
         <MudSpacer />
-        <MudIconButton Icon="@(DarkLightModeButtonIcon)" Color="Color.Inherit" OnClick="@DarkModeToggle" />
-        <MudIconButton Icon="@Icons.Material.Filled.MoreVert" Color="Color.Inherit" Edge="Edge.End" />
         <AuthorizeView>
             <MudIconButton Icon="@Icons.Material.Filled.ManageAccounts" OnClick="@NavigateToProfile" Color="Color.Inherit" />
         </AuthorizeView>
@@ -48,7 +49,6 @@
             LayoutProperties = new LayoutProperties()
         };
     }
-
     private void DrawerToggle()
     {
         _drawerOpen = !_drawerOpen;

@@ -23,6 +23,7 @@ namespace DocManager.Client.Data
                 new Claim("UserId", userInfo.Id),
                 new Claim(ClaimTypes.NameIdentifier, userInfo.Login),
                 new Claim(ClaimTypes.Role, userInfo.Role),
+                new Claim("Password", userInfo.Password),
                 new Claim("Name", userInfo.Name),
                 new Claim("Surname", userInfo.Surname),
             ];
@@ -36,5 +37,9 @@ namespace DocManager.Client.Data
             NotifyAuthenticationStateChanged(Task.FromResult(new AuthenticationState(new())));
         }
         public override Task<AuthenticationState> GetAuthenticationStateAsync() => _authenticationStateTask;
+
+        // Сюда вынести загрузку токена в LocalStorage
+        // Когда ты загружаешь страницу сгружай оттуда токен если есть
+        // Если нет то нет
     }
 }

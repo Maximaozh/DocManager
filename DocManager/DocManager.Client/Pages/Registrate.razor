@@ -92,7 +92,7 @@
                 Surname = SurnameReg,
             };
 
-        var response = await httpClient.PostAsJsonAsync("api/registrate", user);
+        var response = await httpClient.PostAsJsonAsync("api/user/registrate", user);
         if (response.IsSuccessStatusCode)
         {
             result = $"Пользователь {user.Login} зарегистрирован!";

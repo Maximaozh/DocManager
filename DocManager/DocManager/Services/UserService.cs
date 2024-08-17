@@ -1,93 +1,108 @@
-﻿using Data.Models;
-using Data.Repositories;
+﻿using ApplicationDB;
+using Data.Models;
 using DocManager.Data.Cryptographic;
 using DocManager.Data.Jwt;
-using Microsoft.AspNetCore.Components.Authorization;
+using Microsoft.EntityFrameworkCore;
 using Shared.Dto;
+using Shared.Dto.User;
 
 namespace DocManager.Services
 {
-    public interface IUserService
-    {
-        public Task<IResult> AuthenticateUser(UserLogin user, HttpContext httpContext, IConfiguration configuration);
-        public Task<IResult> Registrate(UserRegistrate user);
-    }
-    public class UserService : IUserService
-    {
-        private readonly IConfiguration _configuration;
-        private readonly IPasswordHasher _passwordHasher;
-        private readonly IUserRepositoriy _userRepository;
-        private readonly IJwtProvider _jwtProvider;
-        private readonly AuthenticationStateProvider _serverProvider;
-        public UserService(IConfiguration configuration,
-            IPasswordHasher passwordHasher,
-            IUserRepositoriy userRepositoriy,
-            IJwtProvider jwtProvider,
-            AuthenticationStateProvider serverAuthenticationStateProvider
+    public class UserService(
+        AppContextDB dbContext,
+        PasswordHasher passwordHasher,
+        JwtProvider jwtProvider
             )
-        {
-            _configuration = configuration;
-            _passwordHasher = passwordHasher;
-            _userRepository = userRepositoriy;
-            _jwtProvider = jwtProvider;
-            _serverProvider = serverAuthenticationStateProvider;
-        }
+    {
 
-        public async Task<IResult> AuthenticateUser(UserLogin userLogin, HttpContext httpContext, IConfiguration configuration)
+        public async Task<LoginResponse> AuthenticateUser(UserLogin userLogin)
         {
-            User? user = await _userRepository.GetByLogin(userLogin.Login);
+            UserInfo? user = await dbContext.Users
+                .AsNoTracking()
+                .Select(u => new UserInfo()
+                {
+                    Id = u.Id.ToString(),
+                    Role = u.Role,
+                    Login = u.Login,
+                    Password = u.Password,
+                    Name = u.Name,
+                    Surname = u.Surname
+                })
+                .FirstOrDefaultAsync(u => u.Login == userLogin.Login);
 
             if (user == null)
             {
-                return Results.BadRequest(new { details = "Не удалось получить пользователя" });
+                return null;
             }
 
             if (userLogin.Login != user.Login)
             {
-                return Results.BadRequest(new { details = "Не удалось найти пользователя с таким логином" });
+                return null;
             }
 
-            if (!_passwordHasher.Verify(userLogin.Password, user.Password))
+            if (!passwordHasher.Verify(userLogin.Password, user.Password))
             {
-                return Results.BadRequest(new { details = "Неподходящий пароль" });
+                return null;
             }
 
-            UserInfo data = new UserInfo()
-            {
-                Id = user.Id.ToString(),
-                Login = user.Login,
-                Role = user.Role,
-                Surname = user.Surname,
-                Name = user.Name
-            };
-            httpContext.Response.Cookies.Append("1251", _jwtProvider.GenerateJWT(data, configuration));
-            return Results.Ok();
+            LoginResponse response = new LoginResponse() { Token = jwtProvider.GenerateJWT(user), User = user };
+
+            return response;
         }
 
-        public async Task<IResult> Logout(HttpContext httpContext)
+        public async Task<List<UserInfo>> GetByOffset(PaginateFilter pFilter)
         {
-            httpContext.Response.Cookies.Delete("1251");
-            return Results.Ok();
+            int skipCount = (pFilter.Page - 1) * pFilter.Count;
+            return await dbContext.Users
+                .Skip(skipCount)
+                .Take(pFilter.Count)
+                .Select(u => new UserInfo()
+                {
+                    Id = u.Id.ToString(),
+                    Login = u.Login,
+                    Password = u.Password,
+                    Role = u.Role,
+                    Name = u.Name,
+                    Surname = u.Surname,
+
+                })
+                .ToListAsync();
         }
 
-        public async Task<IResult> Registrate(UserRegistrate user)
+        public async Task<int> GetCount()
+        {
+            return dbContext.Users.Count();
+        }
+
+        public async Task<int> Registrate(UserRegistrate user)
         {
             if (user is null)
             {
-                return Results.BadRequest(new { details = "Ошибка, пользователь не был получен" });
+                return -1;
             }
 
-            User? userFromDB = await _userRepository.GetByLogin(user.Login);
+            User? userFromDB = await dbContext.Users
+                .AsNoTracking()
+                .FirstOrDefaultAsync(u => u.Login == user.Login);
 
             if (userFromDB is not null)
             {
-                return Results.BadRequest(new { details = "Данный логин уже занят" });
+                return -2;
             }
 
-            user.Password = _passwordHasher.GenerateHashBCrypt(user.Password);
+            User registerUser = new User
+            {
+                Login = user.Login,
+                Password = passwordHasher.GenerateHashBCrypt(user.Password),
+                Role = user.Role,
+                Name = user.Name,
+                Surname = user.Surname
+            };
 
-            await _userRepository.Add(user);
-            return Results.Ok();
+            await dbContext.AddAsync(registerUser);
+            await dbContext.SaveChangesAsync();
+
+            return 0;
         }
     }
 }

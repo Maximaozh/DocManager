@@ -1,5 +1,5 @@
-﻿using Shared.Dto;
-using DocManager.Services;
+﻿using DocManager.Services;
+using Shared.Dto.Document;
 
 namespace DocManager.Endpoints
 {
@@ -13,16 +13,16 @@ namespace DocManager.Endpoints
             return app;
         }
 
-        private static async Task<IResult> Creation(DocumentService documentService, DocInfo document, HttpContext httpContext)
+        private static async Task<IResult> Creation(DocumentService documentService, DocInfo document)
         {
-            IResult response = await documentService.Create(document, httpContext);
-            return response;
+            int response = await documentService.Create(document);
+            return Results.Ok(response);
         }
 
-        private static async Task<IResult> GettingByUser(DocumentService documentService, HttpContext httpContext)
+        private static async Task<IResult> GettingByUser(DocumentService documentService)
         {
-            IResult response = await documentService.GetByUser(httpContext);
-            return response;
+            List<DocInfoGet> response = await documentService.GetByUser();
+            return Results.Json(response);
         }
     }
 }

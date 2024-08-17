@@ -32,4 +32,5 @@ app.MapRazorComponents<App>()
     .AddInteractiveWebAssemblyRenderMode()
     .AddAdditionalAssemblies(typeof(DocManager.Client._Imports).Assembly);
 
+app.UseHttpsRedirection();
 app.Run();
